@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - '!**'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set metadata
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ format('localhost:5000/{0}', env.target) }}
+          tags: type=raw,value=latest
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          driver-opts: network=host
+
+      - name: Restore cache
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ hashFiles('Dockerfile') }}
+          restore-keys: ${{ runner.os }}-buildx-
+
+      - name: Build
+        uses: docker/build-push-action@v2
+        with:
+          platforms: ${{ env.platforms }}
+          tags: ${{ steps.meta.outputs.tags }}
+          context: .
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+          push: true
+
+      - name: Test
+        run: |
+          for platform in $(echo ${{ env.platforms }} | tr ',' ' '); do
+            echo "Testing ${platform}"
+            docker run --platform=${platform} --rm "${{ steps.meta.outputs.tags }}" -V
+          done
+
+      - name: Update cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+env:
+  platforms: linux/amd64, linux/386, linux/arm64/v8, linux/arm/v7, linux/arm/v6
+  target: cyanrip
