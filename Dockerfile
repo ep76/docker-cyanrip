@@ -1,4 +1,4 @@
-FROM alpine:3.14 AS builder
+FROM alpine:3.15 AS builder
 ARG cyanrip_url=https://github.com/cyanreg/cyanrip/archive/refs/tags/v0.7.0.tar.gz
 RUN \
   apk add --no-cache \
