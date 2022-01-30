@@ -1,5 +1,5 @@
 FROM alpine:3.15 AS builder
-ARG cyanrip_url=https://github.com/cyanreg/cyanrip/archive/refs/tags/v0.8.0.tar.gz
+ARG cyanrip_url=https://github.com/cyanreg/cyanrip/archive/refs/tags/v0.8.1.tar.gz
 RUN \
   apk add --no-cache \
     ffmpeg-libs \
