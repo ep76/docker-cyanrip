@@ -1,0 +1,36 @@
+services:
+  app:
+    # Built myself from https://github.com/vinicentus/docker-cyanrip
+    image: docker-cyanrip-custom:v0.9.3.1
+    devices:
+      - "/dev/disk/by-id/ata-HL-DT-ST_BD-RE_GGW-H20L_K187CIF3951:/dev/cdrom"
+    volumes:
+      - "/mnt/BigBoi/Apps/Cyanrip/Output:/output"
+    # The same as vin-smb (3000)
+    # user: "3000:3000"
+    # entrypoint: "/bin/sh" # /bin/sh doesn't exist in the container...
+    # Command means parameters:
+    # command: "-f" # Finds the drive offset. Mine is 679 according to the test and accuraterip drive db
+    # The pregap option -p 1=track should output the pregap for track 1 (the first track) as a separate track 0. The rest of the pregaps will be appended to the previous tracks
+    # -s 679 sets the drive offset
+    # -O overread before start and after finish
+    # -T os_uniqode means allow weird symbols in file names such as : and /
+    # -Q means eject on finish
+    # -D sets the output directory. {album}{if #releasecomment# > #0# (|releasecomment|)} [{format}] is the defautl value, and we want the base folder to be output
+    # -G means don't embed cover art
+    # -R sets the musicbrainz release id (for example 1708c609-ce4f-41ff-957f-e9cbfea479f6)
+    # List form: each arg passed separately; wrapper quotes for inner shell (handles spaces)
+    command:
+      - "-s"
+      - "679"
+      - "-O"
+      - "-p"
+      - "1=track"
+      - "-T"
+      - "os_unicode"
+      - "-Q"
+      - "-D"
+      - "/output/{album}{if #releasecomment# > #0# (|releasecomment|)} [{format}]"
+      - "-G"
+      - "-K"
+      - "-N"
